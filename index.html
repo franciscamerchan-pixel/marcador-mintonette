@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#CC0000" />
+<title>Mintonette · Marcador</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #CC0000;
+    --red-dark: #990000;
+    --red-light: #FF2222;
+    --black: #111111;
+    --white: #FFFFFF;
+    --gray-bg: #1A1A1A;
+    --gray-surface: #242424;
+    --gray-card: #2E2E2E;
+    --gray-border: rgba(255,255,255,0.1);
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255,255,255,0.55);
+    --text-muted: rgba(255,255,255,0.25);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--gray-bg); color: var(--text-primary); font-family: var(--font-body); }
+  body { overflow-x: hidden; }
+
+  .app { max-width: 420px; margin: 0 auto; padding: 0 0 2rem; min-height: 100vh; }
+
+  /* Header */
+  .top-bar {
+    background: var(--black);
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid var(--red);
+  }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: var(--red);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 18px; height: 18px; }
+  .app-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 0.04em; color: var(--white); line-height: 1; }
+  .app-subtitle { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* Team name inputs */
+  .names-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--gray-border);
+    margin-bottom: 1px;
+  }
+  .name-input-wrap { background: var(--gray-surface); padding: 10px 12px; }
+  .name-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .name-input {
+    width: 100%; background: transparent; border: none; outline: none;
+    font-family: var(--font-body); font-size: 14px; font-weight: 600;
+    color: var(--text-primary); padding: 0;
+  }
+  .name-input.local { color: var(--red-light); }
+
+  /* Sets won bar */
+  .sets-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    background: var(--black);
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--gray-border);
+  }
+  .sets-num { font-family: var(--font-display); font-size: 32px; color: var(--white); line-height: 1; }
+  .sets-num.local { color: var(--red-light); }
+  .sets-num.right { text-align: right; }
+  .sets-mid { text-align: center; }
+  .sets-label { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
+
+  /* Sets grid */
+  .sets-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--gray-border);
+    margin-bottom: 1px;
+  }
+  .set-tile {
+    background: var(--gray-surface);
+    padding: 8px 6px 6px;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .set-tile.current { background: #1E0000; border-top: 2px solid var(--red); }
+  .set-tile.won-local { background: #1E0000; }
+  .set-tile.won-visitor { background: var(--gray-card); }
+  .set-tile-label { font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .set-tile-score { font-family: var(--font-display); font-size: 16px; color: var(--text-secondary); line-height: 1; }
+  .set-tile.current .set-tile-score { color: var(--white); }
+  .set-tile.won-local .set-tile-score { color: var(--red-light); }
+
+  /* Big scoreboard */
+  .scoreboard {
+    background: var(--black);
+    padding: 16px;
+    margin-bottom: 1px;
+  }
+  .score-main {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+  .score-big {
+    font-family: var(--font-display);
+    font-size: 88px;
+    line-height: 1;
+    color: var(--white);
+  }
+  .score-big.local { color: var(--red-light); }
+  .score-big.right { text-align: right; }
+  .score-dash { font-family: var(--font-display); font-size: 40px; color: var(--text-muted); text-align: center; }
+  .target-hint { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+  /* Buttons */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--gray-border);
+    margin-bottom: 1px;
+  }
+  .btn-point {
+    padding: 22px 12px;
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: 0.05em;
+    border: none;
+    cursor: pointer;
+    transition: filter 0.1s, transform 0.08s;
+    color: var(--white);
+    -webkit-user-select: none; user-select: none;
+  }
+  .btn-point.local { background: var(--red); }
+  .btn-point.local:active { filter: brightness(1.25); transform: scale(0.98); }
+  .btn-point.visitor { background: var(--gray-card); color: var(--text-primary); }
+  .btn-point.visitor:active { filter: brightness(1.4); transform: scale(0.98); }
+  .btn-point span { display: block; font-size: 12px; font-family: var(--font-body); font-weight: 500; letter-spacing: 0; margin-top: 2px; opacity: 0.8; }
+
+  /* Control row */
+  .ctrl-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--gray-border);
+    margin-bottom: 12px;
+  }
+  .btn-ctrl {
+    background: var(--gray-surface);
+    border: none;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 11px 4px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .btn-ctrl:active { background: var(--gray-card); color: var(--white); }
+
+  /* Winner banner */
+  .winner-banner {
+    margin: 0 12px 12px;
+    background: var(--red-dark);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--red);
+    animation: popIn 0.3s ease;
+  }
+  .winner-banner h2 { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.04em; color: var(--white); }
+  .winner-banner p { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* History */
+  .history { padding: 0 12px; }
+  .history-title { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .hist-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px;
+    background: var(--gray-surface);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .hist-score { font-family: var(--font-display); font-size: 16px; color: var(--text-primary); }
+  .badge { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .badge.win { background: rgba(204,0,0,0.25); color: #FF6666; }
+  .badge.loss { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="top-bar">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
+        <path d="M12 3 Q16 8 12 12 Q8 16 12 21" stroke="white" stroke-width="1.5" fill="none"/>
+        <path d="M3 12 Q8 8 12 12 Q16 16 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+    <div>
+      <div class="app-title">Mintonette</div>
+      <div class="app-subtitle">Marcador de partido</div>
+    </div>
+  </div>
+
+  <!-- Team names -->
+  <div class="names-row">
+    <div class="name-input-wrap">
+      <div class="name-label">Mi equipo</div>
+      <input class="name-input local" id="localName" value="Mintonette" oninput="render()" maxlength="16" />
+    </div>
+    <div class="name-input-wrap" style="text-align:right">
+      <div class="name-label" style="text-align:right">Rival</div>
+      <input class="name-input" id="visitorName" placeholder="Rival" oninput="render()" maxlength="16" style="text-align:right" />
+    </div>
+  </div>
+
+  <!-- Sets won -->
+  <div class="sets-bar">
+    <div class="sets-num local" id="setsLocal">0</div>
+    <div class="sets-mid"><div class="sets-label">sets ganados</div></div>
+    <div class="sets-num right" id="setsVisitor">0</div>
+  </div>
+
+  <!-- Sets grid -->
+  <div class="sets-grid" id="setsGrid"></div>
+
+  <!-- Big score -->
+  <div class="scoreboard">
+    <div class="score-main">
+      <div class="score-big local" id="bigLocal">0</div>
+      <div class="score-dash">–</div>
+      <div class="score-big right" id="bigVisitor">0</div>
+    </div>
+    <div class="target-hint">
+      <span id="hintLocal"></span>
+      <span id="hintSet"></span>
+      <span id="hintVisitor"></span>
+    </div>
+  </div>
+
+  <!-- Winner banner -->
+  <div id="winnerBanner" style="display:none" class="winner-banner">
+    <h2 id="winnerText"></h2>
+    <p id="winnerSets"></p>
+  </div>
+
+  <!-- Score buttons -->
+  <div class="btn-row" id="btnRow">
+    <button class="btn-point local" onclick="point('local')" id="btnLocal">
+      + PUNTO<span id="btnLocalLabel">Mintonette</span>
+    </button>
+    <button class="btn-point visitor" onclick="point('visitor')" id="btnVisitor">
+      + PUNTO<span id="btnVisitorLabel">Rival</span>
+    </button>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrl-row">
+    <button class="btn-ctrl" onclick="undoPoint()">↩ Deshacer</button>
+    <button class="btn-ctrl" onclick="newSet()">Set siguiente ›</button>
+    <button class="btn-ctrl" onclick="resetMatch()">Nuevo partido</button>
+  </div>
+
+  <!-- History -->
+  <div class="history" id="historySection" style="display:none">
+    <div class="history-title">Historial de sets</div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<script>
+const MAX_SETS = 5, SETS_TO_WIN = 3, SET_PTS = 25, FINAL_PTS = 15;
+
+let S = {
+  set: 1, local: 0, visitor: 0,
+  setsLocal: 0, setsVisitor: 0,
+  history: [], over: false, last: null
+};
+
+function lName() { return document.getElementById('localName').value || 'Mintonette'; }
+function vName() { return document.getElementById('visitorName').value || 'Rival'; }
+function target() { return S.set === MAX_SETS ? FINAL_PTS : SET_PTS; }
+
+function point(team) {
+  if (S.over) return;
+  S.last = { local: S.local, visitor: S.visitor };
+  if (team === 'local') S.local++; else S.visitor++;
+  checkEnd();
+  render();
+}
+
+function checkEnd() {
+  const t = target(), l = S.local, v = S.visitor;
+  let winner = null;
+  if (l >= t && l - v >= 2) winner = 'local';
+  else if (v >= t && v - l >= 2) winner = 'visitor';
+  if (winner) endSet(winner);
+}
+
+function endSet(w) {
+  S.history.push({ set: S.set, local: S.local, visitor: S.visitor, winner: w });
+  if (w === 'local') S.setsLocal++; else S.setsVisitor++;
+  if (S.setsLocal === SETS_TO_WIN || S.setsVisitor === SETS_TO_WIN) {
+    S.over = true;
+  } else {
+    S.set++; S.local = 0; S.visitor = 0;
+  }
+}
+
+function undoPoint() {
+  if (!S.last) return;
+  S.local = S.last.local; S.visitor = S.last.visitor; S.last = null;
+  render();
+}
+
+function newSet() {
+  if (S.over) return;
+  if (S.local > 0 || S.visitor > 0) {
+    endSet(S.local >= S.visitor ? 'local' : 'visitor');
+  }
+  render();
+}
+
+function resetMatch() {
+  S = { set: 1, local: 0, visitor: 0, setsLocal: 0, setsVisitor: 0, history: [], over: false, last: null };
+  document.getElementById('winnerBanner').style.display = 'none';
+  render();
+}
+
+function render() {
+  const ln = lName(), vn = vName();
+
+  document.getElementById('bigLocal').textContent = S.local;
+  document.getElementById('bigVisitor').textContent = S.visitor;
+  document.getElementById('setsLocal').textContent = S.setsLocal;
+  document.getElementById('setsVisitor').textContent = S.setsVisitor;
+  document.getElementById('btnLocalLabel').textContent = ln;
+  document.getElementById('btnVisitorLabel').textContent = vn;
+
+  // Hint
+  const t = target();
+  document.getElementById('hintSet').textContent = 'Set ' + S.set + (S.set === MAX_SETS ? ' · 15pts' : ' · 25pts');
+
+  // Sets grid
+  const grid = document.getElementById('setsGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= MAX_SETS; i++) {
+    const h = S.history.find(x => x.set === i);
+    const isCurrent = i === S.set && !S.over;
+    const tile = document.createElement('div');
+    tile.className = 'set-tile' + (isCurrent ? ' current' : '') +
+      (h ? (h.winner === 'local' ? ' won-local' : ' won-visitor') : '');
+    const lp = h ? h.local : (isCurrent ? S.local : '–');
+    const vp = h ? h.visitor : (isCurrent ? S.visitor : '–');
+    tile.innerHTML = '<div class="set-tile-label">' + (i === MAX_SETS ? 'DEC' : 'S' + i) + '</div>' +
+      '<div class="set-tile-score">' + lp + ':' + vp + '</div>';
+    grid.appendChild(tile);
+  }
+
+  // Buttons
+  const btnRow = document.getElementById('btnRow');
+  btnRow.style.opacity = S.over ? '0.35' : '1';
+  btnRow.style.pointerEvents = S.over ? 'none' : 'auto';
+
+  // Winner
+  if (S.over) {
+    const w = S.setsLocal === SETS_TO_WIN ? ln : vn;
+    const wSets = S.setsLocal + '–' + S.setsVisitor;
+    document.getElementById('winnerText').textContent = w + ' gana';
+    document.getElementById('winnerSets').textContent = 'Resultado final de sets: ' + wSets;
+    document.getElementById('winnerBanner').style.display = 'block';
+  }
+
+  // History
+  const hist = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+  if (S.history.length > 0) {
+    hist.style.display = 'block';
+    list.innerHTML = S.history.map(h =>
+      '<div class="hist-row">' +
+        '<span style="color:var(--text-muted);font-size:11px;letter-spacing:0.05em;text-transform:uppercase">Set ' + h.set + '</span>' +
+        '<span class="hist-score">' + h.local + ' – ' + h.visitor + '</span>' +
+        '<span class="badge ' + (h.winner === 'local' ? 'win">Ganado' : 'loss">Perdido') + '</span>' +
+      '</div>'
+    ).join('');
+  } else {
+    hist.style.display = 'none';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
